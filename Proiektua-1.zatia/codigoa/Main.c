@@ -140,11 +140,9 @@ void *Erlojua()
         while (done < 2)
         {
             pthread_cond_wait(&cond, &mutex_cl);
-          //printf("Tenporizadoreari seinalea bidalita \n");
         }
         done = 0;
         pthread_cond_broadcast(&cond2);
-        //printf("timer guztiak bukatuta");
         pthread_mutex_unlock(&mutex_cl);
     }
 }
@@ -156,14 +154,11 @@ void *Tenporizadorea_pg(long *frekuentzia) //100000
     while (1)
     {
         done++;
-       // printf("Seinalea sortuta Prozesu sortzaileari %ld \n",p);
+       
         if (tik == *frekuentzia)
         {
-           // printf("Seinalea sortuta Prozesu sortzaileari %ld \n",p);
             pthread_mutex_lock(&mutex_pg);
             pthread_cond_wait(&cond3, &mutex_pg);
-
-          // printf("Seinalea sortuta Prozesu sortzaileari %ld \n",p);
             tik=0;
             p++;
         }else{tik++;}
@@ -171,10 +166,6 @@ void *Tenporizadorea_pg(long *frekuentzia) //100000
         pthread_cond_signal(&cond);
         pthread_cond_wait(&cond2, &mutex_cl);
     }
-    
-        
-    
-    
 }
 
 void *Tenporizadorea_sch(long *frekuentzia) //100000
@@ -199,61 +190,46 @@ void *Tenporizadorea_sch(long *frekuentzia) //100000
         pthread_cond_signal(&cond);
         pthread_cond_wait(&cond2, &mutex_cl);
     }
-    
-        
-    
-    
 }
+
 void *Prozesuak_Sortu(long *lag)
 {  
-  dena_borratu();
-   //pthread_t h;
-   
-    pthread_mutex_lock(&mutex_pg);
-  printf("zenbatero %ld \n",*lag);
-  
-   while (1)
+ dena_borratu();
+ pthread_mutex_lock(&mutex_pg);
+    while (1)
    {
     for (int i = 0; i < 20; i++)
     {
-    //printf("Hemen nago");
-   if (tok == *lag)
-   {
-   // printf("Hemen nago");
-    
-    pthread_create(&threads[i],NULL,(void *)Prozesuak_egin_behar_duena,NULL);
-    tid = (long )&threads[i];
-   // printf("%d",tid);
-    sartu(tid);
-    imprimitudena();
-    
-    tok=0;
-   }else{tok++;}
-   pthread_cond_signal(&cond3);
-   pthread_mutex_unlock(&mutex_pg);
+        if (tok == *lag)
+        {
+            pthread_create(&threads[i],NULL,(void *)Prozesuak_egin_behar_duena,NULL);
+            tid = (long )&threads[i];
+            sartu(tid);
+            imprimitudena();
+            tok=0;
+            }else{tok++;}
+        pthread_cond_signal(&cond3);
+        pthread_mutex_unlock(&mutex_pg);
     }
    }
 }
+
 void *Scheduler(){
-pthread_mutex_lock(&mutex_pg);
-pthread_cond_signal(&cond3);
-pthread_mutex_unlock(&mutex_pg);
+pthread_mutex_lock(&mutex_sc);
+pthread_cond_signal(&cond4);
+pthread_mutex_unlock(&mutex_sc);
 }
 
 int main(int argc, char *argv[])
 {
-   // struct  PROCESINFO a;
-    
     /*Erlojuaren zenbat seinalero egin +1 Timerran*/
     long freq = strtol(argv[1], NULL, 10);
     /*Timerraren zenbat seinalero egin +1 Prozesu sortzailean*/
     long freq_pg = strtol(argv[2], NULL, 10);
-    //a.freq = freq_pg;
-    /*Prozesu sortzaileak sortu ditzakeen prozesu kopuru maximoa*/
-    //long procesmax = strtol(argv[3], NULL, 10);
-   // a.procmax = procesmax;
+    
     /*Hariak erazagutu*/
     pthread_t h1, h2, h3, h4;
+   
     /*Kondizioak eta Mutex inizializatu*/
     pthread_mutex_init(&mutex_cl, NULL);
     pthread_mutex_init(&mutex_pg, NULL);
@@ -262,9 +238,10 @@ int main(int argc, char *argv[])
     pthread_cond_init(&cond2, NULL);
     pthread_cond_init(&cond3, NULL);
     pthread_cond_init(&cond4, NULL);
+    
+    
     /*Erlojua hasi*/
     pthread_create(&h1, NULL, (void *)Erlojua, NULL);
-    
     /*Prozesu sortzailearen Timerraren haria hasi*/
     pthread_create(&h2, NULL, (void *)Tenporizadorea_pg, &freq);
     /*Schedulerraren Timerraren haria hasi*/
@@ -277,6 +254,7 @@ int main(int argc, char *argv[])
     pthread_join(h2,NULL);
     pthread_join(h3,NULL);
     pthread_join(h4,NULL);
+    
     /*Mutex-ak bukarazi*/
     pthread_mutex_destroy(&mutex_cl);
     pthread_mutex_destroy(&mutex_pg);
