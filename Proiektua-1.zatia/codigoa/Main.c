@@ -41,7 +41,7 @@ struct PCB_LIST *azkenapcb = NULL;
 struct PROCESSQUEUE *root_queue = NULL;
 struct PROCESSQUEUE *azkena_queue = NULL;
 
-long done, tik, tok, tak, tuk, proces_num, tid, max, lag = 0;
+long done, tik, tok, tak, tuk, tid, max= 0;
 pthread_mutex_t mutex_cl /*Erlojuaren eta timerraren mutexa*/,
     mutex_pg /*Timerraren eta Prozesu sortzailearen mutexa*/,
     mutex_sc /*Timerra eta Planifikatzaileraren mutexa*/;
