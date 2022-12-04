@@ -5,18 +5,15 @@
 
 struct PCB
 {
-    int tid;
+    long tid;
+    struct PCB *hurrengoa;
 };
-struct PCB_LIST
-{
-    struct PCB pcb;
-    struct PCB_LIST *hurrengoa;
-};
-struct PROCESSQUEUE
-{
-    struct PCB_LIST *prozesua;
-    struct PROCESSQUEUE *hurrengoa;
-};
+
+
+struct PCB *processqueue;
+
+
+
 struct CPU
 {
     int CPU_Numb;
@@ -36,12 +33,11 @@ struct HARI
     struct HARI *hurrengoa;
 };
 
-struct PCB_LIST *rootpcb = NULL;
-struct PCB_LIST *azkenapcb = NULL;
-struct PROCESSQUEUE *root_queue = NULL;
-struct PROCESSQUEUE *azkena_queue = NULL;
+struct PCB *rootpcb = NULL;
+struct PCB *azkenapcb = NULL;
 
-long done, tik, tok, tak, tuk, tid, max= 0;
+
+long done, tik, tok, tak, tuk, tid, max, processqueue_tam = 0;
 pthread_mutex_t mutex_cl /*Erlojuaren eta timerraren mutexa*/,
     mutex_pg /*Timerraren eta Prozesu sortzailearen mutexa*/,
     mutex_sc /*Timerra eta Planifikatzaileraren mutexa*/;
@@ -54,156 +50,103 @@ pthread_t threads[20];
 int hutsik()
 {
     if (rootpcb == NULL)
+    
         return 1;
     else
         return 0;
 }
 
-void sartu(int x)
+void sartu_Pcb_eta_processqueuean(long x)
 {
-    struct PCB_LIST *berria;
-    struct PROCESSQUEUE *proces;
-    berria = malloc(sizeof(struct PCB_LIST));
-    berria->pcb.tid = x;
+    //struct PCB_LIST *berria;
+    //struct PROCESSQUEUE *proces;
+    //berria = malloc(sizeof(struct PCB_LIST));
+    //proces = malloc(sizeof(struct PROCESSQUEUE));
+    struct PCB *berria;
+    berria->tid = x;
     berria->hurrengoa = NULL;
-    proces->prozesua = berria;
+
     if (hutsik())
     {
         rootpcb = berria;
-        root_queue = proces;
         azkenapcb = berria;
-        azkena_queue = proces;
+        processqueue[0] = *berria; 
+        processqueue_tam++;
+        
     }
     else
     {
+        
+        processqueue_tam++;
+        
+        for (int  i = processqueue_tam-1; i >= 0; i--)
+        {
+            processqueue[i] = processqueue[i-1];
+        }
+        processqueue[0] = *berria;
+        rootpcb = berria;
         azkenapcb->hurrengoa = berria;
-        azkena_queue->hurrengoa = proces;
         azkenapcb = berria;
-        azkena_queue = proces;
+        
+        
+
     }
 
 }
 
-void kendu(long x)
+
+void kendu_Processqueuetik()
 {
+    azkenapcb = &processqueue[processqueue_tam-2];
+    
+    processqueue_tam--;
 
-    struct PCB_LIST *bor = rootpcb;
-    struct PCB_LIST *aurrekoa = NULL;
-    if (rootpcb == azkenapcb)
-    {
-
-        rootpcb = NULL;
-        azkenapcb = NULL;
-    }
-    else
-    {
-        while ((bor->pcb.tid != x) || (bor != NULL))
-        {
-            aurrekoa = bor;
-            bor = bor->hurrengoa;
-        }
-        aurrekoa->hurrengoa = bor->hurrengoa;
-    }
-    free(bor);
+   
 }
 
 void imprimitudena()
 {
-    struct PCB_LIST *reco = rootpcb;
+    struct PCB *reco = rootpcb;
     printf("Listako PCB_LIST elemtu guztiak:\n");
     while (reco != NULL)
     {
-        printf("%i - ", reco->pcb.tid);
+        printf("%i - ", reco->tid);
         reco = reco->hurrengoa;
     }
     printf("\n");
 }
 
-void dena_borratu()
+// void dena_borratu()
+// {
+//     struct PCB *reco = rootpcb;
+//     struct PCB *bor;
+//     while (reco != NULL)
+//     {
+//         bor = reco;
+//         reco = reco->hurrengoa;
+//         printf("c");
+//         //fflush(stdout);
+//         //free(bor);
+//     }
+// }
+int Prozesuak_egin_behar_duena()
 {
-    struct PCB_LIST *reco = rootpcb;
-    struct PCB_LIST *bor;
-    while (reco != NULL)
-    {
-        bor = reco;
-        reco = reco->hurrengoa;
-        free(bor);
-    }
-}
-pthread_t Prozesuak_egin_behar_duena()
-{
-    return pthread_self();
+    
+    return 1;    
 }
 void printqueue()
 {
-    struct PROCESSQUEUE *reco = root_queue;
+    
     printf("Process Queueko elemtu guztiak:\n");
-    while (reco != NULL)
+    for(int i=0;i<processqueue_tam-1;i++)
     {
-        printf("%d - ", reco->prozesua->pcb.tid);
-        reco = reco->hurrengoa;
+        printf("%d  ", processqueue[i].tid);
+        //printf("\n");
+        
     }
     printf("\n");
 }
-// void sartu_queuean(struct PCB_LIST *proces)
-// {
-//     struct PROCESSQUEUE *berria;
-//     berria = malloc(sizeof(struct PROCESSQUEUE));
-//     berria->prozesua = proces;
-//     berria->hurrengoa = NULL;
-//     if (root_queue == NULL)
-//     {
-//         root_queue = berria;
-//         azkena_queue = berria;
-//     }
-//     else
-//     {
-//         azkena_queue->hurrengoa = berria;
-//         azkena_queue = berria;
-//     }
-// }
-// void kenduqueuetik(int x)
-// {
-//     struct PROCESSQUEUE *bor = root_queue;
-//     struct PROCESSQUEUE *aurrekoa = NULL;
-//     if ((root_queue->prozesua->pcb.tid == x) && (root_queue == azkena_queue))
-//     {
 
-//         root_queue = NULL;
-//         azkena_queue = NULL;
-//     }
-//     else
-//     {
-//         while ((bor->prozesua->pcb.tid != x) || (bor != NULL))
-//         {
-//             aurrekoa = bor;
-//             bor = bor->hurrengoa;
-//         }
-//         aurrekoa->hurrengoa = bor->hurrengoa;
-//     }
-//     free(bor);
-// }
-void queue_guztia_borratu()
-{
-    struct PROCESSQUEUE *reco = root_queue;
-    struct PROCESSQUEUE *bor;
-    while (reco != NULL)
-    {
-        bor = reco;
-        reco = reco->hurrengoa;
-        free(bor);
-    }
-}
-// struct PCB_LIST *prozesua_bilatu_pcb_listean(int x)
-// {
-
-//     struct PCB_LIST *bor = rootpcb;
-//     while ((bor->pcb.tid != x) || (bor->hurrengoa != NULL))
-//     {
-//         bor = bor->hurrengoa;
-//     }
-//     return bor;
-// }
 void *Erlojua()
 {
     done = 0;
@@ -273,17 +216,20 @@ void *Tenporizadorea_sch(long *frekuentzia) // 100000
 
 void *Prozesuak_Sortu(long *lag)
 {
-    dena_borratu();
+    printf("Prozesuak sortu\n");
+    //dena_borratu();
     pthread_mutex_lock(&mutex_pg);
     while (1)
-    {
+    {   //printf("AAAAA");
         for (int i = 0; i < 100; i++)
         {
             if (tok == *lag)
             {
                 pthread_create(&threads[i], NULL, (void *)Prozesuak_egin_behar_duena, NULL);
+                //pthread_join(threads[i],NULL);
+                //pthread_exit(&tid);
                 tid = (long)threads[i];
-                sartu(tid);
+                sartu_Pcb_eta_processqueuean(tid);
                 // struct PCB_LIST *a = prozesua_bilatu_pcb_listean(tid);
                 //sartu_queuean(a);
                 //imprimitudena();
@@ -302,38 +248,17 @@ void *Prozesuak_Sortu(long *lag)
 
 void *Scheduler(long *freq_sc)
 {
-    struct PROCESSQUEUE *bor;
-    queue_guztia_borratu();
+    
     pthread_mutex_lock(&mutex_sc);
     while (1)
     {
         if (tak == *freq_sc)
         {
-            bor = root_queue;
-            if (bor != NULL)
-            {
-                if (bor->hurrengoa == NULL)
-                {
-                    max = bor->prozesua->pcb.tid;
-                }
-                else
-                {
-
-                    while (bor != NULL)
-                    {
-                        if (bor->prozesua->pcb.tid > max)
-                        {
-                            max = bor->prozesua->pcb.tid;
-                        }
-
-                        bor = bor->hurrengoa;
-                    }
-                }
-                // kenduqueuetik(max);
-                kendu(max);
-                printf("%ld-a duen prozesua sartuko da exekuziora\n", max);
-                //printqueue();
-            }
+                
+                printf("%d-a duen prozesua sartuko da exekuziora\n", processqueue[processqueue_tam-1].tid );
+                kendu_Processqueuetik();
+                printqueue();
+            
             tak = 0;
         }
         else
@@ -348,7 +273,9 @@ void *Scheduler(long *freq_sc)
 
 int main(int argc, char *argv[])
 {
-    /*Erlojuaren zenbat seinalero egin +1 Timerran*/
+    processqueue = (struct PCB*)malloc(sizeof(struct PCB));
+    
+     /*Erlojuaren zenbat seinalero egin +1 Timerran*/
     long freq = strtol(argv[1], NULL, 10);
     /*Timerraren zenbat seinalero egin +1 Prozesu sortzailean*/
     long freq_pg = strtol(argv[2], NULL, 10);
@@ -388,4 +315,6 @@ int main(int argc, char *argv[])
     pthread_mutex_destroy(&mutex_cl);
     pthread_mutex_destroy(&mutex_pg);
     pthread_mutex_destroy(&mutex_sc);
+
+    free(processqueue);
 }
