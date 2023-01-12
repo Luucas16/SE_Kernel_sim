@@ -11,7 +11,6 @@
 extern struct PCB *rootpcb;
 extern struct PCB *azkenapcb;
 
-extern int estrategi_zenb;
 extern int done;
 extern long tik;
 extern long tok;

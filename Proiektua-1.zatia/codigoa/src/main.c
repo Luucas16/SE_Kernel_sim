@@ -9,7 +9,6 @@
 #include "../include/Scheduler.h"
 
  pthread_t h1, h2, h3, h4, h5;
- int estrategi_zenb;
  //pthread_mutex_t mutex_cl;
  //pthread_cond_t cond, cond2;
  //sem_t semaforo_pg, semaforo_sc;
@@ -17,15 +16,13 @@
 
 int main(int argc, char *argv[])
 {
-    printf("Idatzi 1 FIFO estrategiarentzat edo 2 RoundRobin estrategiarentzat:");
-    scanf("%d",&estrategi_zenb);
     //processqueue = (struct PCB*)malloc(tam);
     /*Erlojuaren zenbat seinalero egin +1 Timerran*/
-    //long freq = strtol(argv[1], NULL, 10);
+    long freq = strtol(argv[1], NULL, 10);
     /*Timerraren zenbat seinalero egin +1 Prozesu sortzailean*/
-    long freq_pg = strtol(argv[1], NULL, 10);
+    long freq_pg = strtol(argv[2], NULL, 10);
     /*Timerraren zenbat seinalero egin +1 Schedulerran*/
-    long freq_sc = strtol(argv[2], NULL, 10);
+    long freq_sc = strtol(argv[3], NULL, 10);
 
     /*Hariak erazagutu*/
    

@@ -7,9 +7,6 @@
 struct PCB
 {
     long tid;
-    int momentuko_exekuzio_denbora;
-    int quantum;
-    int exekuzioa_bukatzeko_denbora;
     struct PCB *hurrengoa;
 };
 
@@ -52,31 +49,43 @@ int hutsik()
 
 void sartu_Pcb_eta_processqueuean(long x)
 {
-
+    // struct PCB_LIST *berria;
+    // struct PROCESSQUEUE *proces;
+    // berria = malloc(sizeof(struct PCB_LIST));
+    // proces = malloc(sizeof(struct PROCESSQUEUE));
     struct PCB berria;
-
-
+    // printf("HASIERA\n");
     berria.tid = x;
+    // printf("%ld",berria.tid);
 
     berria.hurrengoa = NULL;
 
+    // printf("BUK\n");
+
     if (hutsik())
-    {
+    { // printf("IF\n");
 
         rootpcb = &berria;
         azkenapcb = &berria;
+
+        // printf("%p %p %ld", rootpcb, azkenapcb, processqueue[0].tid);
     }
     else if (&rootpcb == &azkenapcb)
     {
+        // printf("ELSIF\n");
 
         rootpcb->hurrengoa = &berria;
         azkenapcb = &berria;
+
+        // printf("%p %p\n",processqueue[0],processqueue[1]);
     }
     else
     {
 
         azkenapcb->hurrengoa = &berria;
         azkenapcb = &berria;
+        // printf("ESLE\n");
+        // fflush(stdout);
     }
 
     if (processqueue_tam == 0)
@@ -88,120 +97,43 @@ void sartu_Pcb_eta_processqueuean(long x)
     {
         processqueue_tam++;
         processqueue[1] = berria;
-    }
-    else if (processqueue_tam >= 2 && processqueue_tam < 1000)
-    {
+    }else if(processqueue_tam>2 && processqueue_tam<1000){
 
         processqueue_tam++;
-        processqueue[processqueue_tam - 1] = berria;
-    }
-    else
-    {
+        //printf("%ld \n", processqueue_tam);  
+
+        //for (int i = 0; i < processqueue_tam-2; i++)
+        //{
+
+        //processqueue[i] = processqueue[i+1];
+        // printf("%p %p",processqueue[i],processqueue[i-1]);
+        //}
+            processqueue[processqueue_tam-1] = berria;
+            //azkenapcb->hurrengoa = &berria;
+            //azkenapcb = &berria;
+    }else{
         printf("procesqueuea beteta itxaron libratu arte");
     }
-}
 
-void sartu_Pcb_eta_processqueuean_roundrobin(long x, int quantu)
-{
+    
 
-    struct PCB berria;
-    berria.exekuzioa_bukatzeko_denbora = rand() % (50 - 11 + 1) + 11;
-    berria.quantum = quantu;
-    berria.tid = x;
-    berria.momentuko_exekuzio_denbora = 0;
-    berria.hurrengoa = NULL;
+    
 
-    if (hutsik())
-    {
-
-        rootpcb = &berria;
-        azkenapcb = &berria;
-    }
-    else if (&rootpcb == &azkenapcb)
-    {
-
-        rootpcb->hurrengoa = &berria;
-        azkenapcb = &berria;
-    }
-    else
-    {
-
-        azkenapcb->hurrengoa = &berria;
-        azkenapcb = &berria;
-    }
-
-    if (processqueue_tam == 0)
-    {
-        processqueue[0] = berria;
-        processqueue_tam++;
-    }
-    else if (processqueue_tam == 1)
-    {
-        processqueue_tam++;
-        processqueue[1] = berria;
-    }
-    else if (processqueue_tam >= 2 && processqueue_tam < 1000)
-    {
-
-        processqueue_tam++;
-        processqueue[processqueue_tam - 1] = berria;
-    }
-    else
-    {
-        printf("procesqueuea beteta itxaron libratu arte \n");
-    }
 }
 
 void kendu_Processqueuetik()
 {
-
-    for (int i = 0; i < processqueue_tam - 2; i++)
-    {
-        processqueue[i] = processqueue[i + 1];
-    }
-
-    processqueue_tam--;
-}
-
-void kendu_Processqueuetik_roundrobin(long ttid)
-{
-    int aurkitua = 0;
-    int ez_aurkitua = 0;
-    int i = 0;
-    int lag = 0;
-
-    while (aurkitua != 1)
-    {
-        if (i < processqueue_tam)
+    // if (!processqueue_tam == 0)
+    // {
+    //     processqueue_tam--;
+    // }
+    for (int i = 0; i < processqueue_tam-2; i++)
         {
-
-            if (processqueue[i].tid == ttid)
-            {
-                aurkitua++;
-                lag = i;
-            }
-            else
-            {
-                i++;
-            }
-        }
-        else
-        {
-            printf("ez dago procesqueuean");
-            ez_aurkitua++;
-            aurkitua++;
-        }
-    }
-    if (ez_aurkitua == 0)
-    {
-        for (int a = lag; a < processqueue_tam - 2; a++)
-
-        {
-            processqueue[a] = processqueue[a + 1];
+            processqueue[i] = processqueue[i+1];
         }
         processqueue_tam--;
-    }
 }
+
 
 void printqueue()
 {
@@ -218,7 +150,7 @@ void printqueue()
     }
     else
     {
-        printf("PROZESU GUTXIEGI");
+         printf("PROZESU GUTXIEGI");
     }
 
     printf("\n");
@@ -226,68 +158,23 @@ void printqueue()
 
 void *Scheduler(long *freq_sc)
 {
-    int bukatuta = 0;
-    int guztiz_bukatua = 0;
-    int pasatako_segunduak = 0;
-    int i = 0;
+
+   
     while (1)
     {
+      
+            sem_wait(&semaforo_sc);
 
-        sem_wait(&semaforo_sc);
-
-        if (processqueue_tam > 0)
-        {
-            if (estrategi_zenb == 1)
-            {
-
-                printf("%ld-a duen prozesua sartuko da exekuziora\n", processqueue[processqueue_tam - 1].tid);
-                fflush(stdout);
+	    if (processqueue_tam > 0) {
+            
+	      printf("%ld-a duen prozesua sartuko da exekuziora\n", processqueue[processqueue_tam -1].tid);
+	      fflush(stdout);
+                // printf("POINTER %ld",processqueue[processqueue_tam-1]);
                 kendu_Processqueuetik();
-            }
-            else
-            {
-                // for (int i = 0; i < processqueue_tam; i++) //aldatu beharra
-                //{
-                printf("%ld-a duen prozesua sartuko da exekuziora\n", processqueue[i].tid);
+                //printqueue();
+	     }
 
-                while (bukatuta != 1)
-                {
-                    processqueue[i].momentuko_exekuzio_denbora++;
-                    // printf("%d  momentuko exekuzioa \n", processqueue[i].momentuko_exekuzio_denbora);
-                    // fflush(stdout);
-                    // printf("%d exekuzioa bukatzeko dem\n", processqueue[i].exekuzioa_bukatzeko_denbora);
-                    // fflush(stdout);
-                    //  printf("%d quantuma\n",processqueue[i].quantum);
-                    pasatako_segunduak++;
-                    if (processqueue[i].momentuko_exekuzio_denbora >= processqueue[i].exekuzioa_bukatzeko_denbora)
-                    {
-                        bukatuta++;
-                        guztiz_bukatua++;
-                    }
-                    else if (pasatako_segunduak == processqueue[i].quantum || processqueue[i].quantum == 0)
-                    {
-
-                        bukatuta++;
-                    }
-                }
-                if (guztiz_bukatua == 1)
-                {
-                    kendu_Processqueuetik_roundrobin(processqueue[i].tid);
-                }
-                else
-                {
-                    i++;
-                }
-                if (i == processqueue_tam)
-                {
-                    i = 0;
-                }
-
-                bukatuta = 0;
-                guztiz_bukatua = 0;
-                pasatako_segunduak = 0;
-                //}
-            }
-        }
+	      //sem_post(&semaforo_sc);
+        
     }
 }
